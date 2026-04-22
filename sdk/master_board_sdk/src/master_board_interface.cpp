@@ -1,12 +1,26 @@
 #include <math.h>
 #include <signal.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <cstring>
 #include "master_board_sdk/master_board_interface.h"
 
 MasterBoardInterface *MasterBoardInterface::instance = NULL;
 
 MasterBoardInterface::MasterBoardInterface(const std::string &if_name, bool listener_mode)
 {
-  uint8_t my_mac[6] = {0xa0, 0x1d, 0x48, 0x12, 0xa0, 0xc5}; //take it as an argument?
+  uint8_t my_mac[6] = {0};
+  {
+    struct ifreq ifr;
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    strncpy(ifr.ifr_name, if_name.c_str(), IFNAMSIZ - 1);
+    if (ioctl(fd, SIOCGIFHWADDR, &ifr) == 0)
+      memcpy(my_mac, ifr.ifr_hwaddr.sa_data, 6);
+    else
+      fprintf(stderr, "Warning: could not read MAC of %s, using zeros\n", if_name.c_str());
+    close(fd);
+  }
   uint8_t dest_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
   memcpy(this->my_mac_, my_mac, 6);
   memcpy(this->dest_mac_, dest_mac, 6);

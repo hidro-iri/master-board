@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <stdexcept>
 
 #include "master_board_sdk/master_board_interface.h"
 #include "master_board_sdk/defines.h"
